@@ -1,4 +1,6 @@
-FROM debian:buster
+ARG image_name
+
+FROM ${image_name}
 
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
@@ -8,6 +10,7 @@ RUN apt-get update
 # Install compiler and perl deps
 RUN apt-get install --yes \
  build-essential \
+ automake \
  gcc-multilib \
  apt-utils \
  perl \
