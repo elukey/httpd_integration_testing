@@ -41,7 +41,7 @@ RUN cpanm --force Bundle::ApacheTest \
   IO::Select \
   LWP::Protocol::https
 
-# Install dependencies to run the perl test suite
+# Install dependencies to run the perl test suite and the mod_h2 one
 RUN apt-get install --yes libapr1 \
   libapr1-dev \
   libaprutil1-dev \
@@ -51,7 +51,12 @@ RUN apt-get install --yes libapr1 \
   liblua5.3-dev \
   libnghttp2-dev \
   nghttp2 \
-  check
+  check \
+  git \
+  python3 \
+  python3-pytest \
+  python3-requests \
+  rsync
 
 USER nobody
 
@@ -63,5 +68,27 @@ WORKDIR /tmp/httpd-trunk
 
 # Configure and build httpd trunk
 RUN ./buildconf --with-apr=apr-1-config
-RUN ./configure --enable-maintainer-mode --enable-ssl --with-crypto --with-openssl --enable-lua --enable-deflate --with-test-suite=/tmp/httpd-test --enable-http2
+RUN ./configure --enable-mpms-shared --enable-maintainer-mode --enable-ssl --with-crypto --with-openssl --enable-lua --enable-deflate --with-test-suite=/tmp/httpd-test --enable-http2
 RUN make
+
+USER root
+
+RUN make install
+
+USER nobody
+
+# Checkout the mod_h2 github repo to checkout/configure its integration testing suite
+
+WORKDIR /tmp
+
+RUN git clone https://github.com/icing/mod_h2.git
+
+WORKDIR /tmp/mod_h2
+
+RUN autoreconf -i
+
+RUN ./configure -with-apxs=/usr/local/apache2/bin/apxs
+
+RUN make
+
+WORKDIR /tmp
