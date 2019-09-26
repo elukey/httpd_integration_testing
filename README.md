@@ -6,8 +6,10 @@ In this repository there are some prototypes of possible solutions to automate t
 
 The Docker images can be build and executed like the following:
 
-docker build .
-docker run $image_id $command
+- `docker build .`
+- `docker run $image_id $command`
+
+To run the perl test suite, `$command` must be `make check`.
 
 ### Debian and Ubuntu
 
