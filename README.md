@@ -1,4 +1,4 @@
-# httpd integration testing tests
+# httpd integration testing
 
 In this repository there are some prototypes of possible solutions to automate the integration testing of the httpd code.
 
