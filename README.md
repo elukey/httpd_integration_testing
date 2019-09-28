@@ -25,6 +25,8 @@ Debian and Ubuntu share the same docker image, that must be built with `--build_
 
 These docker images focus on getting a certain release candidate tarball, unpack/check/configure/build it and allow to run the Perl or HTTP/2 test suite.
 
+To build the image (example): `docker build --build-arg image_name=debian:buster --build-arg httpd_version='2.4.40' . -t debian/buster/httpd-tests-ga`
+
 To run the perl test suite: `docker run $name-of-the-image /bin/bash -c "cd /tmp/httpd-test && ./t/TEST"`
 
 To run the mod_h2 test suite: `docker run $name-of-the-image /bin/bash -c "cd /tmp/mod_h2 && make test"`
@@ -34,6 +36,8 @@ Note: the mod_h2's test suite requires python 3.5+ so it may not run on all plat
 ### Code snapshot testing
 
 These docker images focus on getting the latest version of the trunk and 2.4.x branches, configure/build them and allow to run the Perl or HTTP/2 test suite.
+
+To build the image (example): `docker build --build-arg image_name=debian:buster . -t debian/buster/httpd-tests-code-snapshot`
 
 To run the perl test suite (trunk only): `docker run $name-of-the-image /bin/bash -c "cd /tmp/httpd-trunk && make check`
 
