@@ -6,6 +6,8 @@ ARG httpd_version
 
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Update the repository sources list
 RUN apt-get update
 
@@ -63,7 +65,9 @@ RUN apt-get install --yes libapr1 \
   curl \
   vim \
   wget \
-  php-fpm
+  php-fpm \
+  libbrotli-dev \
+  libbrotli1
 
 USER nobody
 

@@ -4,6 +4,8 @@ FROM ${image_name}
 
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Update the repository sources list
 RUN apt-get update
 
@@ -40,8 +42,7 @@ RUN cpanm --force Bundle::ApacheTest \
   IO::Socket::IP \
   IO::Select \
   LWP::Protocol::https \
-  FCGI \
-  brotli
+  FCGI
 
 # Install dependencies to run the perl test suite and the mod_h2 one
 RUN apt-get install --yes libapr1 \
@@ -61,7 +62,9 @@ RUN apt-get install --yes libapr1 \
   rsync \
   curl \
   vim \
-  php-fpm
+  php-fpm \
+  libbrotli-dev \
+  libbrotli1
 
 USER nobody
 
