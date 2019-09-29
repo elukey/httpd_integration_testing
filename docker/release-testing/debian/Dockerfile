@@ -41,7 +41,8 @@ RUN cpanm --force Bundle::ApacheTest \
   IO::Socket::SSL \
   IO::Socket::IP \
   IO::Select \
-  LWP::Protocol::https
+  LWP::Protocol::https \
+  FCGI
 
 # Install dependencies to run the perl test suite and the mod_h2 one
 RUN apt-get install --yes libapr1 \
@@ -61,7 +62,8 @@ RUN apt-get install --yes libapr1 \
   rsync \
   curl \
   vim \
-  wget
+  wget \
+  php-fpm
 
 USER nobody
 
@@ -76,12 +78,15 @@ RUN tar xvfz httpd-${httpd_version}.tar.gz
 
 WORKDIR /tmp/httpd_release_candidate/httpd-${httpd_version}
 
-RUN ./configure --enable-mpms-shared --enable-maintainer-mode --enable-ssl --with-crypto --with-openssl --enable-lua --enable-deflate --with-test-suite=/tmp/httpd-test --enable-http2
+RUN ./configure --enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
 RUN make
 
 USER root
 
 RUN make install
+
+# Temporary workaround to have php-fpm in the user's PATH
+RUN ln -s $(ls /usr/sbin/php-fpm7*) /usr/local/bin/php-fpm
 
 USER nobody
 
