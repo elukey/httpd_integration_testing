@@ -113,4 +113,14 @@ RUN ./configure -with-apxs=/usr/local/apache2/bin/apxs
 
 RUN make
 
+WORKDIR /tmp/httpd-test
+
+RUN perl Makefile.PL -apxs /usr/local/apache2/bin/apxs
+
+# Fix t/filter/case.t - see https://bz.apache.org/bugzilla/show_bug.cgi?id=63787
+USER root
+RUN for version in $(ls /usr/share/perl); do touch /usr/share/perl/$version/pod/perlsub.pod; done
+
+USER nobody
+
 WORKDIR /tmp
