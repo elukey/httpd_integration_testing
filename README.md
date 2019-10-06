@@ -21,6 +21,12 @@ Debian and Ubuntu share the same docker image, that must be built with `--build_
 * `debian:buster`
 *  etc..
 
+There are currently some issues with older distributions and the cpan perl dependencies configure/install.
+
+### CentOS
+
+CentOS 8 doesn't ship with the `lua-devel` package, so it needs to be build manually in the Dockerfile.
+
 ### Release candidate testing
 
 These docker images focus on getting a certain release candidate tarball, unpack/check/configure/build it and allow to run the Perl or HTTP/2 test suite.

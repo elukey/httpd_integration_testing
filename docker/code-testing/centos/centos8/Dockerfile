@@ -2,34 +2,30 @@ ARG image_name
 
 FROM ${image_name}
 
+ARG httpd_version
+
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
-ARG DEBIAN_FRONTEND=noninteractive
-
 # Update the repository sources list
-RUN apt-get update
+RUN yum update -y
 
 # Install compiler and perl deps
-RUN apt-get install --yes \
- build-essential \
+RUN yum install -y \
+ make automake gcc gcc-c++ \
  automake \
- gcc-multilib \
- apt-utils \
  perl \
- expat \
- libexpat-dev \
- zlib1g-dev \
+ expat-devel \
+ zlib-devel \
  ca-certificates
 
 # Install openssl libs/deps
-RUN apt-get install --yes \
+RUN yum install -y \
   openssl \
-  libssl-dev
+  openssl-devel
 
 # Install cpanminus and perl dependencies
-RUN apt-get install -y cpanminus
+RUN yum install -y cpanminus
 RUN cpanm --force Bundle::ApacheTest \
-  inc::Module::Install \
   HTTP::DAV \
   DateTime \
   Time::HiRes \
@@ -46,15 +42,17 @@ RUN cpanm --force Bundle::ApacheTest \
   FCGI
 
 # Install dependencies to run the perl test suite and the mod_h2 one
-RUN apt-get install --yes libapr1 \
-  libapr1-dev \
-  libaprutil1-dev \
+RUN yum install -y apr \
+  apr-devel \
+  apr-util-devel \
   subversion \
   libtool \
-  libpcre3-dev \
-  liblua5.3-dev \
-  libnghttp2-dev \
-  nghttp2 \
+  pcre-devel \
+  pcre \
+  #lua-devel \
+  #lua \
+  #lua-libs \
+  libnghttp2 \
   check \
   git \
   python3 \
@@ -63,9 +61,31 @@ RUN apt-get install --yes libapr1 \
   rsync \
   curl \
   vim \
+  wget \
   php-fpm \
-  libbrotli-dev \
-  libbrotli1
+  brotli
+
+
+# lua-devel package still not available
+# https://bugzilla.redhat.com/show_bug.cgi?id=1734218
+RUN yum install -y gcc \
+  gcc-c++ \
+  kernel-devel \
+  readline-devel \
+  patch
+
+USER nobody
+RUN mkdir /tmp/lua_build
+WORKDIR /tmp/lua_build
+RUN wget http://www.linuxfromscratch.org/patches/blfs/9.0/lua-5.3.5-shared_library-1.patch
+RUN curl -R -O http://www.lua.org/ftp/lua-5.3.4.tar.gz
+RUN tar -zxf lua-5.3.4.tar.gz
+WORKDIR lua-5.3.4
+RUN patch -p1 < ../lua-5.3.5-shared_library-1.patch
+RUN make linux
+
+USER root
+RUN make install
 
 USER nobody
 
