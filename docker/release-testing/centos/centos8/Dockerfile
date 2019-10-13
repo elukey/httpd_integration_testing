@@ -24,7 +24,7 @@ RUN yum install -y \
   openssl-devel
 
 # Install cpanminus and perl dependencies
-RUN yum install -y cpanminus
+RUN cpan -i App::cpanminus
 RUN cpanm --force Bundle::ApacheTest \
   HTTP::DAV \
   DateTime \

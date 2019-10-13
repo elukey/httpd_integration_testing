@@ -1,4 +1,4 @@
-ARG image_name=debian:latest
+ARG image_name
 
 FROM ${image_name}
 
@@ -7,6 +7,8 @@ ARG httpd_version
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
 ARG DEBIAN_FRONTEND=noninteractive
+
+RUN echo "deb http://deb.debian.org/debian stretch-backports main" >> /etc/apt/sources.list
 
 # Update the repository sources list
 RUN apt-get update

@@ -1,12 +1,12 @@
-ARG image_name=debian:latest
+ARG image_name
 
 FROM ${image_name}
-
-ARG httpd_version
 
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
 ARG DEBIAN_FRONTEND=noninteractive
+
+RUN echo "deb http://deb.debian.org/debian stretch-backports main" >> /etc/apt/sources.list
 
 # Update the repository sources list
 RUN apt-get update
@@ -31,6 +31,7 @@ RUN apt-get install --yes \
 # Install cpanminus and perl dependencies
 RUN cpan -i App::cpanminus
 RUN cpanm --force Bundle::ApacheTest \
+  inc::Module::Install \
   HTTP::DAV \
   DateTime \
   Time::HiRes \
@@ -64,28 +65,26 @@ RUN apt-get install --yes libapr1 \
   rsync \
   curl \
   vim \
-  wget \
-  php-fpm
-
-RUN bash -c 'if [ "$image_name" == "debian:stretch" ] ; then echo "deb http://deb.debian.org/debian stretch-backports main" >> /etc/apt/sources.list ; fi'
-
-# Update the repository sources list
-RUN apt-get update
-RUN apt-get install --yes libbrotli-dev libbrotli1
+  php-fpm \
+  libbrotli-dev \
+  libbrotli1
 
 USER nobody
 
-RUN mkdir /tmp/httpd_release_candidate
-WORKDIR /tmp/httpd_release_candidate
+# Checkout httpd trunk and the perl testing framework
+RUN svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk /tmp/httpd-trunk
+RUN svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/ /tmp/httpd-2.4.x
+RUN svn checkout https://svn.apache.org/repos/asf/httpd/test/framework/trunk /tmp/httpd-test
 
-# Get the release given as arg, check its sha1sum and unpack it
-RUN wget https://dist.apache.org/repos/dist/dev/httpd/httpd-${httpd_version}.tar.gz
-RUN wget https://dist.apache.org/repos/dist/dev/httpd/httpd-${httpd_version}.tar.gz.sha256
-RUN sha256sum --check httpd-${httpd_version}.tar.gz.sha256
-RUN tar xvfz httpd-${httpd_version}.tar.gz
+WORKDIR /tmp/httpd-trunk
 
-WORKDIR /tmp/httpd_release_candidate/httpd-${httpd_version}
+# Configure and build httpd trunk
+RUN ./buildconf --with-apr=apr-1-config
+RUN ./configure --enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
+RUN make
 
+WORKDIR /tmp/httpd-2.4.x
+RUN ./buildconf --with-apr=apr-1-config
 RUN ./configure --enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
 RUN make
 
@@ -97,16 +96,6 @@ RUN make install
 RUN ln -s $(ls /usr/sbin/php-fpm7*) /usr/local/bin/php-fpm
 
 USER nobody
-
-# Checkout the mod_h2 github repo to checkout/configure its integration testing suite
-
-WORKDIR /tmp
-
-RUN svn checkout https://svn.apache.org/repos/asf/httpd/test/framework/trunk /tmp/httpd-test
-
-WORKDIR /tmp/httpd-test
-
-RUN perl Makefile.PL -apxs /usr/local/apache2/bin/apxs
 
 # Checkout the mod_h2 github repo to checkout/configure its integration testing suite
 
@@ -134,5 +123,7 @@ RUN perl Makefile.PL -apxs /usr/local/apache2/bin/apxs
 # Fix t/filter/case.t - see https://bz.apache.org/bugzilla/show_bug.cgi?id=63787
 USER root
 RUN for version in $(ls /usr/share/perl); do touch /usr/share/perl/$version/pod/perlsub.pod; done
+
+USER nobody
 
 WORKDIR /tmp

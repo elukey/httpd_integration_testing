@@ -1,4 +1,4 @@
-ARG image_name
+ARG image_name=debian:latest
 
 FROM ${image_name}
 
@@ -27,7 +27,7 @@ RUN apt-get install --yes \
   libssl-dev
 
 # Install cpanminus and perl dependencies
-RUN apt-get install -y cpanminus
+RUN cpan -i App::cpanminus
 RUN cpanm --force Bundle::ApacheTest \
   inc::Module::Install \
   HTTP::DAV \
