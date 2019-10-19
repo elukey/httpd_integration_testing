@@ -1,4 +1,6 @@
 ARG image_name
+ARG trunk_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
+ARG 24x_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module
 
 FROM ${image_name}
 
@@ -98,12 +100,12 @@ WORKDIR /tmp/httpd-trunk
 
 # Configure and build httpd trunk
 RUN ./buildconf --with-apr=apr-1-config
-RUN ./configure --enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
+RUN ./configure ${trunk_configure_args}
 RUN make
 
 WORKDIR /tmp/httpd-2.4.x
 RUN ./buildconf --with-apr=apr-1-config
-RUN ./configure --enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
+RUN ./configure ${24x_configure_args}
 RUN make
 
 USER root
@@ -137,11 +139,5 @@ RUN make
 WORKDIR /tmp/httpd-test
 
 RUN perl Makefile.PL -apxs /usr/local/apache2/bin/apxs
-
-# Fix t/filter/case.t - see https://bz.apache.org/bugzilla/show_bug.cgi?id=63787
-USER root
-RUN for version in $(ls /usr/share/perl); do touch /usr/share/perl/$version/pod/perlsub.pod; done
-
-USER nobody
 
 WORKDIR /tmp

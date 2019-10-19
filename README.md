@@ -21,8 +21,6 @@ Debian and Ubuntu share the same docker image, that must be built with `--build_
 * `debian:buster`
 *  etc..
 
-There are currently some issues with older distributions and the cpan perl dependencies configure/install.
-
 ### CentOS
 
 CentOS 8 doesn't ship with the `lua-devel` package, so it needs to be build manually in the Dockerfile.
@@ -31,7 +29,7 @@ CentOS 8 doesn't ship with the `lua-devel` package, so it needs to be build manu
 
 These docker images focus on getting a certain release candidate tarball, unpack/check/configure/build it and allow to run the Perl or HTTP/2 test suite.
 
-To build the image (example): `docker build --build-arg image_name=debian:buster --build-arg httpd_version='2.4.40' . -t debian/buster/httpd-tests-ga`
+To build the image (example): `docker build --build-arg image_name=debian:buster --build-arg httpd_version='2.4.40' --buil-arg trunk_configure_args='--enable-mpms-shared --enable-maintainer-mode ..' --buil-arg=24x_configure_args='--enable-mpms-shared --enable-maintainer-mode ..' . -t debian/buster/httpd-tests-ga`
 
 To run the perl test suite: `docker run $name-of-the-image /bin/bash -c "cd /tmp/httpd-test && ./t/TEST"`
 
@@ -43,7 +41,7 @@ Note: the mod_h2's test suite requires python 3.5+ so it may not run on all plat
 
 These docker images focus on getting the latest version of the trunk and 2.4.x branches, configure/build them and allow to run the Perl or HTTP/2 test suite.
 
-To build the image (example): `docker build --build-arg image_name=debian:buster . -t debian/buster/httpd-tests-code-snapshot`
+To build the image (example): `docker build --build-arg image_name=debian:buster --buil-arg configure_args='--enable-mpms-shared --enable-maintainer-mode ..' . -t debian/buster/httpd-tests-code-snapshot`
 
 To run the perl test suite (trunk only): `docker run $name-of-the-image /bin/bash -c "cd /tmp/httpd-trunk && make check`
 
@@ -53,3 +51,9 @@ To run the mod_h2 test suite: `docker run $name-of-the-image /bin/bash -c "cd /t
 
 Note: the mod_h2's test suite requires python 3.5+ so it may not run on all platforms.
 
+
+## TODOs:
+
+* Add travis configuration.
+* Find a way to improve reuse of configurations in Dockerfiles (at the moment there is a lot of repetition).
+* Add support for more OSes.

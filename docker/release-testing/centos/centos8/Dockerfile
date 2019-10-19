@@ -1,4 +1,5 @@
 ARG image_name
+ARG configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module
 
 FROM ${image_name}
 
@@ -100,7 +101,7 @@ RUN tar xvfz httpd-${httpd_version}.tar.gz
 
 WORKDIR /tmp/httpd_release_candidate/httpd-${httpd_version}
 
-RUN ./configure --enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
+RUN ./configure ${configure_args}
 RUN make
 
 USER root
@@ -144,9 +145,5 @@ RUN make
 WORKDIR /tmp/httpd-test
 
 RUN perl Makefile.PL -apxs /usr/local/apache2/bin/apxs
-
-# Fix t/filter/case.t - see https://bz.apache.org/bugzilla/show_bug.cgi?id=63787
-USER root
-RUN for version in $(ls /usr/share/perl); do touch /usr/share/perl/$version/pod/perlsub.pod; done
 
 WORKDIR /tmp
