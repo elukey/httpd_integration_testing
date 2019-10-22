@@ -1,13 +1,16 @@
 ARG image_name
-ARG configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module
 
 FROM ${image_name}
 
-ARG httpd_version
-
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
+# ARGs defined after the FROM are available to use in the
+# rest of the Dockerfile.
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG DEBIAN_FRONTEND=noninteractive
+ARG configure_args='--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module'
+ARG httpd_version
+ARG image_name
 
 # Update the repository sources list
 RUN apt-get update
@@ -28,24 +31,6 @@ RUN apt-get install --yes \
 RUN apt-get install --yes \
   openssl \
   libssl-dev
-
-# Install cpanminus and perl dependencies
-RUN cpan -i App::cpanminus
-RUN cpanm --force Bundle::ApacheTest \
-  HTTP::DAV \
-  DateTime \
-  Time::HiRes \
-  Protocol::HTTP2::Client \
-  AnyEvent \
-  Test \
-  Test::Harness \
-  Crypt::SSLeay \
-  Net::SSLeay \
-  IO::Socket::SSL \
-  IO::Socket::IP \
-  IO::Select \
-  LWP::Protocol::https \
-  FCGI
 
 # Install dependencies to run the perl test suite and the mod_h2 one
 RUN apt-get install --yes libapr1 \
@@ -73,6 +58,24 @@ RUN bash -c 'if [ "$image_name" == "debian:stretch" ] ; then echo "deb http://de
 # Update the repository sources list
 RUN apt-get update
 RUN apt-get install --yes libbrotli-dev libbrotli1
+
+# Install cpanminus and perl dependencies
+RUN cpan -i App::cpanminus
+RUN cpanm --force Bundle::ApacheTest \
+  HTTP::DAV \
+  DateTime \
+  Time::HiRes \
+  Protocol::HTTP2::Client \
+  AnyEvent \
+  Test \
+  Test::Harness \
+  Crypt::SSLeay \
+  Net::SSLeay \
+  IO::Socket::SSL \
+  IO::Socket::IP \
+  IO::Select \
+  LWP::Protocol::https \
+  FCGI
 
 USER nobody
 

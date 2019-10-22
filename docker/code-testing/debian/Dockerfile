@@ -1,12 +1,16 @@
-ARG image_name=debian:latest
-ARG trunk_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
-ARG 24x_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module
+ARG image_name
 
 FROM ${image_name}
 
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
+# ARGs defined after the FROM are available to use in the
+# rest of the Dockerfile.
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG DEBIAN_FRONTEND=noninteractive
+ARG trunk_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
+ARG 24x_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module
+ARG image_name
 
 # Update the repository sources list
 RUN apt-get update
@@ -28,25 +32,6 @@ RUN apt-get install --yes \
   openssl \
   libssl-dev
 
-# Install cpanminus and perl dependencies
-RUN cpan -i App::cpanminus
-RUN cpanm --force Bundle::ApacheTest \
-  inc::Module::Install \
-  HTTP::DAV \
-  DateTime \
-  Time::HiRes \
-  Protocol::HTTP2::Client \
-  AnyEvent \
-  Test \
-  Test::Harness \
-  Crypt::SSLeay \
-  Net::SSLeay \
-  IO::Socket::SSL \
-  IO::Socket::IP \
-  IO::Select \
-  LWP::Protocol::https \
-  FCGI
-
 # Install dependencies to run the perl test suite and the mod_h2 one
 RUN apt-get install --yes libapr1 \
   libapr1-dev \
@@ -65,9 +50,32 @@ RUN apt-get install --yes libapr1 \
   rsync \
   curl \
   vim \
-  php-fpm \
-  libbrotli-dev \
-  libbrotli1
+  wget \
+  php-fpm
+
+RUN bash -c 'if [ "$image_name" == "debian:stretch" ] ; then echo "deb http://deb.debian.org/debian stretch-backports main" >> /etc/apt/sources.list ; fi'
+
+# Update the repository sources list
+RUN apt-get update
+RUN apt-get install --yes libbrotli-dev libbrotli1
+
+# Install cpanminus and perl dependencies
+RUN cpan -i App::cpanminus
+RUN cpanm --force Bundle::ApacheTest \
+  HTTP::DAV \
+  DateTime \
+  Time::HiRes \
+  Protocol::HTTP2::Client \
+  AnyEvent \
+  Test \
+  Test::Harness \
+  Crypt::SSLeay \
+  Net::SSLeay \
+  IO::Socket::SSL \
+  IO::Socket::IP \
+  IO::Select \
+  LWP::Protocol::https \
+  FCGI
 
 USER nobody
 
