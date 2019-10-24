@@ -1,10 +1,13 @@
 ARG image_name
-ARG trunk_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module
-ARG 24x_configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module
 
 FROM ${image_name}
 
-ARG httpd_version
+# ARGs defined after the FROM are available to use in the
+# rest of the Dockerfile.
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
+ARG branch_trunk_configure='--enable-mpms-shared --enable-maintainer-mode --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module'
+ARG branch_24x_configure='--enable-mpms-shared --enable-maintainer-mode --enable-modules=reallyall --enable-load-all-module'
+ARG image_name
 
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 
@@ -51,9 +54,6 @@ RUN yum install -y apr \
   libtool \
   pcre-devel \
   pcre \
-  lua-devel \
-  lua \
-  lua-libs \
   libnghttp2 \
   check \
   git \
@@ -67,6 +67,23 @@ RUN yum install -y apr \
   php-fpm \
   brotli
 
+# lua-devel package still not available on centos8
+# https://bugzilla.redhat.com/show_bug.cgi?id=1734218
+# ===========================================================
+RUN yum install -y gcc \
+  gcc-c++ \
+  kernel-devel \
+  readline-devel \
+  patch
+
+COPY lua-5.3.5-shared_library-1.patch /tmp/lua_build/lua-5.3.5-shared_library-1.patch
+
+RUN bash -c 'if [ "$image_name" == "centos:centos8" ] ; then cd /tmp/lua_build; curl -R -O https://www.lua.org/ftp/lua-5.3.4.tar.gz; tar -zxf lua-5.3.4.tar.gz; cd lua-5.3.4; patch -p1 < /tmp/lua_build/lua-5.3.5-shared_library-1.patch; make linux; make install; fi'
+
+RUN bash -c 'if [ "$image_name" != "centos:centos8" ] ; then apt-get install -y lua-devel lua-libs; fi'
+# ===========================================================
+
+
 USER nobody
 
 # Checkout httpd trunk and the perl testing framework
@@ -78,12 +95,12 @@ WORKDIR /tmp/httpd-trunk
 
 # Configure and build httpd trunk
 RUN ./buildconf --with-apr=apr-1-config
-RUN ./configure ${trunk_configure_args}
+RUN ./configure ${branch_trunk_configure}
 RUN make
 
 WORKDIR /tmp/httpd-2.4.x
 RUN ./buildconf --with-apr=apr-1-config
-RUN ./configure ${24x_configure_args}
+RUN ./configure ${branch_24x_configure}
 RUN make
 
 USER root

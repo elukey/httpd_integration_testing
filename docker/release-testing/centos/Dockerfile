@@ -1,5 +1,5 @@
 ARG image_name
-ARG configure_args=--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module
+ARG configure_args='--enable-mpms-shared --enable-maintainer-mode --enable-modules=reallyall --enable-load-all-module'
 
 FROM ${image_name}
 
@@ -50,9 +50,6 @@ RUN yum install -y apr \
   libtool \
   pcre-devel \
   pcre \
-  lua-devel \
-  lua \
-  lua-libs \
   libnghttp2 \
   check \
   git \
@@ -65,6 +62,22 @@ RUN yum install -y apr \
   wget \
   php-fpm \
   brotli
+
+# lua-devel package still not available on centos8
+# https://bugzilla.redhat.com/show_bug.cgi?id=1734218
+# ===========================================================
+RUN yum install -y gcc \
+  gcc-c++ \
+  kernel-devel \
+  readline-devel \
+  patch
+
+COPY lua-5.3.5-shared_library-1.patch /tmp/lua_build/lua-5.3.5-shared_library-1.patch
+
+RUN bash -c 'if [ "$image_name" == "centos:centos8" ] ; then cd /tmp/lua_build; curl -R -O https://www.lua.org/ftp/lua-5.3.4.tar.gz; tar -zxf lua-5.3.4.tar.gz; cd lua-5.3.4; patch -p1 < /tmp/lua_build/lua-5.3.5-shared_library-1.patch; make linux; make install; fi'
+
+RUN bash -c 'if [ "$image_name" != "centos:centos8" ] ; then apt-get install -y lua-devel lua-libs; fi'
+# ===========================================================
 
 USER nobody
 

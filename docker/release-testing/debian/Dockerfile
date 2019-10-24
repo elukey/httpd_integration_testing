@@ -7,10 +7,11 @@ MAINTAINER Luca Toscano <toscano.luca@gmail.com>
 # ARGs defined after the FROM are available to use in the
 # rest of the Dockerfile.
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG DEBIAN_FRONTEND=noninteractive
 ARG configure_args='--enable-mpms-shared --enable-maintainer-mode --with-crypto --with-openssl --enable-lua --enable-modules=reallyall --enable-load-all-module'
 ARG httpd_version
 ARG image_name
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Update the repository sources list
 RUN apt-get update
