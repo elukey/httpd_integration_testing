@@ -33,7 +33,7 @@ RUN apt-get install --yes \
   openssl \
   libssl-dev
 
-# Install dependencies to run the perl test suite and the mod_h2 one
+# Install dependencies to run the perl test suite
 RUN apt-get install --yes libapr1 \
   libapr1-dev \
   libaprutil1-dev \
@@ -44,10 +44,6 @@ RUN apt-get install --yes libapr1 \
   libnghttp2-dev \
   nghttp2 \
   check \
-  git \
-  python3 \
-  python3-pytest \
-  python3-requests \
   rsync \
   curl \
   vim \
@@ -92,35 +88,6 @@ RUN make install
 RUN ln -s $(ls /usr/sbin/php-fpm7*) /usr/local/bin/php-fpm
 
 USER nobody
-
-# Checkout the mod_h2 github repo to checkout/configure its integration testing suite
-
-WORKDIR /tmp
-
-RUN svn checkout https://svn.apache.org/repos/asf/httpd/test/framework/trunk /tmp/httpd-test
-
-WORKDIR /tmp/httpd-test
-
-RUN perl Makefile.PL -apxs /usr/local/apache2/bin/apxs
-
-# Checkout the mod_h2 github repo to checkout/configure its integration testing suite
-
-WORKDIR /tmp
-
-RUN git clone https://github.com/icing/mod_h2.git
-
-WORKDIR /tmp/mod_h2
-
-RUN autoreconf -i
-
-# Needed since the USER bash variable is not populated
-# in Docker containers, and it is needed by the configure
-# step below.
-ENV USER=nobody
-
-RUN ./configure -with-apxs=/usr/local/apache2/bin/apxs
-
-RUN make
 
 WORKDIR /tmp/httpd-test
 
