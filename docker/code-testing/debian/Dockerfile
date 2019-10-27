@@ -64,18 +64,8 @@ RUN apt-get install --yes libbrotli-dev libbrotli1
 RUN cpan -i App::cpanminus
 RUN cpanm --force Bundle::ApacheTest \
   HTTP::DAV \
-  DateTime \
-  Time::HiRes \
   Protocol::HTTP2::Client \
   AnyEvent \
-  Test \
-  Test::Harness \
-  Crypt::SSLeay \
-  Net::SSLeay \
-  IO::Socket::SSL \
-  IO::Socket::IP \
-  IO::Select \
-  LWP::Protocol::https \
   FCGI
 
 USER nobody
