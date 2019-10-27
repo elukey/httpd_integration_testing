@@ -5,8 +5,8 @@ FROM ${image_name}
 # ARGs defined after the FROM are available to use in the
 # rest of the Dockerfile.
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG branch_trunk_configure='--enable-mpms-shared --enable-maintainer-mode --with-test-suite=/tmp/httpd-test --enable-modules=reallyall --enable-load-all-module'
-ARG branch_24x_configure='--enable-mpms-shared --enable-maintainer-mode --enable-modules=reallyall --enable-load-all-module'
+ARG branch='2.4.x'
+ARG configure='--enable-mpms-shared --enable-maintainer-mode --enable-modules=reallyall --enable-load-all-module'
 ARG image_name
 
 MAINTAINER Luca Toscano <toscano.luca@gmail.com>
@@ -86,21 +86,13 @@ RUN bash -c 'if [ "$image_name" != "centos:centos8" ] ; then apt-get install -y 
 
 USER nobody
 
-# Checkout httpd trunk and the perl testing framework
-RUN svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk /tmp/httpd-trunk
-RUN svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/ /tmp/httpd-2.4.x
+# Checkout the httpd branch and the perl testing framework
+RUN bash -c 'if [ "$branch" == "trunk" ] ; then svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk /tmp/httpd-trunk; else svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/${branch}/ /tmp/httpd-${branch}
 RUN svn checkout https://svn.apache.org/repos/asf/httpd/test/framework/trunk /tmp/httpd-test
 
-WORKDIR /tmp/httpd-trunk
-
-# Configure and build httpd trunk
+WORKDIR /tmp/httpd-${branch}
 RUN ./buildconf --with-apr=apr-1-config
-RUN ./configure ${branch_trunk_configure}
-RUN make
-
-WORKDIR /tmp/httpd-2.4.x
-RUN ./buildconf --with-apr=apr-1-config
-RUN ./configure ${branch_24x_configure}
+RUN ./configure ${configure}
 RUN make
 
 USER root

@@ -41,9 +41,9 @@ Note: the mod_h2's test suite requires python 3.5+ so it may not run on all plat
 
 These docker images focus on getting the latest version of the trunk and 2.4.x branches, configure/build them and allow to run the Perl or HTTP/2 test suite.
 
-To build the image (example): `docker build --build-arg image_name=debian:buster --buil-arg configure_args='--enable-mpms-shared --enable-maintainer-mode ..' . -t debian/buster/httpd-tests-code-snapshot`
+To build the image (example): `docker build --build-arg image_name=debian:buster --branch trunk --buil-arg configure='--enable-mpms-shared --enable-maintainer-mode ..' . -t debian/buster/httpd-tests-code-snapshot`
 
-To run the perl test suite (trunk only): `docker run $name-of-the-image /bin/bash -c "cd /tmp/httpd-trunk && make check`
+To run the perl test suite (trunk only, if `--with-test-suite=/tmp/httpd-test` is passed to the `configure` arg): `docker run $name-of-the-image /bin/bash -c "cd /tmp/httpd-trunk && make check`
 
 To run the perl test suite (2.4.x): `docker run $name-of-the-image /bin/bash -c "cd /tmp/httpd-test && ./t/TEST"`
 
