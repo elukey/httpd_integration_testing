@@ -32,6 +32,7 @@ RUN yum install -y \
 RUN cpan -i App::cpanminus
 RUN cpanm --force Bundle::ApacheTest \
   HTTP::DAV \
+  DateTime \
   Protocol::HTTP2::Client \
   AnyEvent \
   FCGI
@@ -46,11 +47,6 @@ RUN yum install -y apr \
   pcre \
   libnghttp2 \
   check \
-  git \
-  python3 \
-  python3-pytest \
-  python3-requests \
-  rsync \
   curl \
   vim \
   wget \

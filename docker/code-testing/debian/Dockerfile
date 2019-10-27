@@ -44,7 +44,6 @@ RUN apt-get install --yes libapr1 \
   libnghttp2-dev \
   nghttp2 \
   check \
-  rsync \
   curl \
   vim \
   wget \
@@ -60,6 +59,7 @@ RUN apt-get install --yes libbrotli-dev libbrotli1
 RUN cpan -i App::cpanminus
 RUN cpanm --force Bundle::ApacheTest \
   HTTP::DAV \
+  DateTime \
   Protocol::HTTP2::Client \
   AnyEvent \
   FCGI
